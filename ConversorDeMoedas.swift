@@ -1,61 +1,71 @@
-//
-//  Tela inicial.swift
-//  Better Sleep
-//
-//  Created by user on 23/10/24.
-//
-
 import SwiftUI
 
-struct Tela_inicial: View {
-    @State private var image: UIImage?
+struct ContentView: View {
+    @State private var valorEmUSD: String = ""
+    @State private var moedaDestino: String = "EUR"
+    @State private var resultado: String = ""
+    
+    let taxasDeCambio: [String: Double] = [
+        "EUR": 0.85,
+        "BRL": 5.0,
+        "GBP": 0.76
+    ]
     
     var body: some View {
-        ZStack {
-            if let image = image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .edgesIgnoringSafeArea(.all)
-            } else {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(1.5)
+        VStack {
+            Text("Conversor de Moedas")
+                .font(.largeTitle)
+                .padding()
+            
+            TextField("Valor em USD", text: $valorEmUSD)
+        
+                .padding()
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.green, lineWidth: 1)
+                )
+                .padding()
+            
+            Picker("Moeda de destino", selection: $moedaDestino) {
+                Text("EUR").tag("EUR")
+                Text("BRL").tag("BRL")
+                Text("GBP").tag("GBP")
             }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding()
             
-            Text("Better Sleep")
-                .bold()
-                .font(.system(size: 35))
-                .foregroundColor(.white)
-                .position(x: UIScreen.main.bounds.width / 2.2, y: 82)
+            Button(action: converterMoeda) {
+                Text("Converter")
+                    .font(.headline)
+                    .padding()
+                    .background(Color.green)
+                    .foregroundColor(.black)
+                    .cornerRadius(10)
+            }
+            .padding()
             
-            Text("Olá! Seja bem-vindo(a)! \nAqui você irá praticar o ritual do sono, tendo como consequência \nmelhores resultados e melhor eficácia na duração e na qualidade do seu sono.")
-                .bold()
-                .font(.system(size: 15))
-                .foregroundColor(.white)
-                .position(x: UIScreen.main.bounds.width / 1.5, y: 150)
-                .multilineTextAlignment(.center)
-                .padding(
-            )
-            
+            Text(resultado)
+                .font(.title2)
+                .padding()
         }
-        .onAppear {
-            loadImage(from: "https://wallpapers.com/images/hd/starry-night-and-dark-blue-sky-nkybmoo3e3te9v63.webp")
-        }
+        .padding()
     }
     
-    func loadImage(from urlString: String) {
-        guard let url = URL(string: urlString) else { return }
+    func converterMoeda() {
+        guard let valor = Double(valorEmUSD) else {
+            resultado = "Valor inválido"
+            return
+        }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else { return }
-            DispatchQueue.main.async {
-                self.image = UIImage(data: data)
-            }
-        }.resume()
+        let taxa = taxasDeCambio[moedaDestino] ?? 1.0
+        let valorConvertido = valor * taxa
+        
+        resultado = String(format: "%.2f USD = %.2f %@", valor, valorConvertido, moedaDestino)
     }
 }
 
-#Preview {
-    Tela_inicial()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
